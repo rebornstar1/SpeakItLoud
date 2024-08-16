@@ -21,13 +21,20 @@ const PORT  = 3000;
 app.get("/",(req,res) => 
 {
     res.send("Hello World");
-})
+});
 
 io.on("connection",(socket)=>{
-    console.log("User Connected");
-    console.log("ID",socket.id);
-    socket.broadcast.emit("welcome",`Welcome to the server, ${socket.id}`);
-})
+    console.log("User Connected",socket.id);
+
+    socket.on("message", (data) => {
+        console.log(data);
+        io.emit("receive-message",data);
+    })
+
+    socket.on("disconnect", () => {
+        console.log("User Disconnected",socket.id);
+    })
+});
 
 server.listen(PORT, () => {
     console.log(`The Server is Running on the Port ${PORT}`)

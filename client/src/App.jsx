@@ -1,12 +1,20 @@
-import { useEffect, useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState, useMemo } from 'react'
 import {io} from "socket.io-client"
+import { Container, TextField, Typography, Button } from '@mui/material'
+import './index.css'
 
 function App() {
+  const socket = useMemo(() => io("http://localhost:3000"),[]);
 
-  const socket = io("http://localhost:3000")
+  const [message,setMessage] = useState("");
+  const [recieveMessage,setrecieveMessage] = useState("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log(message);
+    socket.emit("message",message);
+    setMessage("");
+  }
 
   useEffect(()=> {
     socket.on("connect", () => {
@@ -16,11 +24,33 @@ function App() {
     socket.on("welcome", (s) => {
       console.log(s);
     })
+
+    socket.on("message", (s)=>{
+      setrecieveMessage(s);
+      console.log(s);
+    })
+
+    socket.on("receive-message",(data)=>{
+       console.log(data);
+    })
+
+    return () => {
+      socket.disconnect();
+    }
   },[]);
 
   return (
-     <div>This is for testing Purposes</div>
-  )
-}
+        <Container maxWidth="sm">
+            <Typography variant='h1' component="div" gutterBottom>
+              Speak It Loud
+            </Typography>
 
-export default App
+        <form onSubmit={handleSubmit}>
+           <TextField value={message} onChange={(e)=> setMessage(e.target.value)} id="outlined-basic" label="Outlined" variant='outlined'/>
+           <Button type="submit" variant="contained" color="primary">Send</Button>
+            </form>
+        </Container>
+      );
+    }
+
+export default App;
